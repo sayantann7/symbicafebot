@@ -64,15 +64,75 @@ menu_sections = {
         "Tea": 30,
         "Hot Coffee": 40,
         "Cold Coffee": 40,
+        "Citrus Blue Soda": 40,
+        "Lemon Pudina Soda": 40,
         "Oreo Milkshake": 50
+    },
+    "Finger Chips": {
+        "Finger Chips": 70,
+        "Peri Peri Finger Chips": 80
+    },
+    "Burger": {
+        "Veg Burger": 65,
+        "Veg Cheese Burger": 80,
+        "Veg Noodles Burger": 80,
+        "Chicken Burger": 100,
+        "Chicken Noodles Burger with Cheese": 120
     },
     "Pizza": {
         "Margherita Pizza": 100,
         "Chicken Pizza": 150
     },
+    "Momos": {
+        "Veg Steam Momo": 70,
+        "Veg Fry Momo": 80,
+        "Chicken Steam Momo": 80,
+        "Chicken Fry Momo": 90
+    },
     "Rolls": {
+        "Egg Roll": 70,
+        "Veg Noodles Roll": 75,
+        "Paneer Roll": 90,
         "Chicken Roll": 90,
-        "Paneer Roll": 90
+        "Paneer Tikka Roll": 90,
+        "Chicken Tikka Roll": 100
+    },
+    "Chicken Snacks": {
+        "Chicken Manchurian Dry": 140,
+        "Chicken Manchurian Gravy": 160,
+        "Chicken 65 Dry": 140,
+        "Chicken 65 Gravy": 160,
+        "Chicken Lollipop Fry": 190,
+        "Chicken Lollipop Masala": 200
+    },
+    "Veg Rice": {
+        "Veg Fried Rice": 110,
+        "Veg Schezwan Rice": 130,
+        "Veg Shanghai Rice": 130,
+        "Veg Manchurian Rice": 150,
+        "Veg Triple Rice": 150,
+        "Paneer Triple Rice": 170,
+    },
+    "Chicken Rice": {
+        "Egg Fried Rice": 130,
+        "Chicken Fried Rice": 130,
+        "Chicken Combination Rice": 110,
+        "Chicken Shanghai Rice": 140,
+        "Chicken Schezwan Rice": 140,
+        "Chicken Triple Rice": 160,
+        "Chicken Manchurian Rice": 160
+    },
+    "Veg Noodles": {
+        "Veg Hakka Noodles": 120,
+        "Veg Schezwan Noodles": 130,
+        "Veg Manchurian Noodles": 150
+    },
+    "Chicken Noodles": {
+        "Egg Hakka Noodles": 145,
+        "Chicken Hakka Noodles": 145,
+        "Chicken Schezwan Noodles": 150,
+        "Chicken Manchurian Noodles": 160,
+        "Chicken Triple Noodles": 160
     }
 }
 ```
