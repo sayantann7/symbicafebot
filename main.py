@@ -1,9 +1,10 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
+import random
 import asyncio
 
 BOT_TOKEN = "7841263367:AAFhsbbzuxfvrMekdQ19rqMojiZuQxTHrho"  
-CHAT_ID = "6473655119"  
+CHAT_ID = "6873588948"  
 
 # Menu Items categorized with prices
 menu_sections = {
@@ -83,17 +84,44 @@ menu_sections = {
     }
 }
 
-# Start Command
+hostel_list = ["Hostel A (Girls Hostel)", "Hostel B (Girls Hostel)", "Hostel C (Girls Hostel)", "Hostel D (Boys Hostel)", "Hostel E (Boys Hostel)", "Hostel F (Boys Hostel)", "Hostel G (Boys Hostel)", "Hostel H (Boys Hostel)"]
+
+# Choose hostel first
+async def choose_hostel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [[InlineKeyboardButton(hostel, callback_data=hostel)] for hostel in hostel_list]  # Each hostel in a new row
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("Please select your hostel:", reply_markup=reply_markup)
+
+# Handle hostel selection
+async def hostel_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    context.user_data['hostel'] = query.data
+    await query.edit_message_text(f"Hostel selected: {query.data}. You can now start your order by typing /order.")
+
+
+# Start Command: Only for hostel selection now
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Create keyboard in rows of 2 for better visibility
+    await choose_hostel(update, context)
+
+
+# Ordering: Moved from /start to /order
+async def order(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Check if hostel is selected first
+    if 'hostel' not in context.user_data:
+        await update.message.reply_text("Please select your hostel first using /start.")
+        return
+    
+    # Create keyboard for menu sections
     keyboard = []
     row = []
     for section in menu_sections.keys():
         row.append(InlineKeyboardButton(section, callback_data=section))
-        if len(row) == 2:  # Change this value to adjust how many buttons per row
+        if len(row) == 2:
             keyboard.append(row)
             row = []
-    if row:  # Add any remaining buttons as the last row
+    if row:
         keyboard.append(row)
 
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -109,12 +137,12 @@ async def section_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     items = menu_sections[section]
 
     # Show items with prices in the selected section, each item on a new line
-    keyboard = [[InlineKeyboardButton(f"{item} (₹{price})", callback_data=item)] for item, price in items.items()]  
+    keyboard = [[InlineKeyboardButton(f"{item} (₹{price})", callback_data=item)] for item, price in items.items()]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await query.edit_message_text(f"You selected: {section}. Please choose an item:", reply_markup=reply_markup)
 
 
-# Handle item selection
+# Handle item selection (Add to order)
 async def item_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -131,31 +159,78 @@ async def item_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['order'].append((item, price))
 
     order_summary = "\n".join([f"{itm} (₹{prc})" for itm, prc in context.user_data['order']])
-    await query.edit_message_text(f"Item added: {item} (₹{price})\nCurrent Order:\n{order_summary}\nType /confirm to place the order or /start to choose another section.")
+    await query.edit_message_text(f"Item added: {item} (₹{price})\nCurrent Order:\n{order_summary}\nType /confirm to place the order, /remove_item to remove items, or /order to choose another section.")
 
-# Confirm Order
+
+# Handle removing an item from the order
+async def remove_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if 'order' in context.user_data and context.user_data['order']:
+        # Display the current items to remove
+        keyboard = [[InlineKeyboardButton(f"{item} (₹{price})", callback_data=f"remove_{item}")] for item, price in context.user_data['order']]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text("Select an item to remove:", reply_markup=reply_markup)
+    else:
+        await update.message.reply_text("Your order is empty. Type /order to add items.")
+
+
+# Handle item removal
+async def item_removal_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    item_to_remove = query.data.replace("remove_", "")  # Extract the item name
+    context.user_data['order'] = [(item, price) for item, price in context.user_data['order'] if item != item_to_remove]
+
+    order_summary = "\n".join([f"{itm} (₹{prc})" for itm, prc in context.user_data['order']])
+    await query.edit_message_text(f"Item removed: {item_to_remove}\nCurrent Order:\n{order_summary}\nType /confirm to place the order, or /order to add more items.")
+
+
+# Edit hostel selection (if students want to change their hostel)
+async def edit_hostel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await choose_hostel(update, context)
+
+
+# Confirm Order with hostel and order ID
 async def confirm_order(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if 'order' in context.user_data and context.user_data['order']:
+        hostel = context.user_data.get('hostel', "No hostel selected")
         order_summary = "\n".join([f"{item} (₹{price})" for item, price in context.user_data['order']])
         total_price = sum([price for _, price in context.user_data['order']])
-        
-        await update.message.reply_text(f"Order confirmed:\n{order_summary}\nTotal Price: ₹{total_price}")
+        order_id = random.randint(10000, 99999)
 
+        await update.message.reply_text(f"Order confirmed:\nHostel: {hostel}\nOrder ID: {order_id}\n{order_summary}\nTotal Price: ₹{total_price}")
+
+        # Send order to cafe
         cafe_chat_id = CHAT_ID
         try:
-            await context.bot.send_message(cafe_chat_id, f"New Order:\n{order_summary}\nTotal Price: ₹{total_price}")
+            await context.bot.send_message(cafe_chat_id, f"New Order:\nHostel: {hostel}\nOrder ID: {order_id}\n{order_summary}\nTotal Price: ₹{total_price}")
         except Exception as e:
             await update.message.reply_text(f"Error sending message to cafe: {str(e)}")
     else:
-        await update.message.reply_text("No items in your order. Type /start to start ordering.")
+        await update.message.reply_text("No items in your order. Type /order to start ordering.")
+
+
+# Get chat ID and reply to the user
+async def getchatid(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(f"Your chat ID is: {update.effective_chat.id}")
+
 
 async def main():
     application = ApplicationBuilder().token(BOT_TOKEN).build()
 
+    # Command handlers
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("order", order))
+    application.add_handler(CommandHandler("confirm", confirm_order))
+    application.add_handler(CommandHandler("remove_item", remove_item))
+    application.add_handler(CommandHandler("edit_hostel", edit_hostel))
+    application.add_handler(CommandHandler("getchatid", getchatid))
+
+    # Callback query handlers
     application.add_handler(CallbackQueryHandler(section_selection, pattern='|'.join(menu_sections.keys())))
     application.add_handler(CallbackQueryHandler(item_selection, pattern='|'.join([item for section in menu_sections.values() for item in section.keys()])))
-    application.add_handler(CommandHandler("confirm", confirm_order))
+    application.add_handler(CallbackQueryHandler(item_removal_selection, pattern=r'^remove_.*'))
+    application.add_handler(CallbackQueryHandler(hostel_selection, pattern='|'.join(hostel_list)))
 
     await application.initialize()
     await application.start()
@@ -163,9 +238,9 @@ async def main():
 
     await application.updater.start_polling()
     
-    # Keep the bot running until interrupted
     while True:
         await asyncio.sleep(1)
+
 
 if __name__ == '__main__':
     asyncio.run(main())
