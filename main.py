@@ -84,7 +84,7 @@ menu_sections = {
     }
 }
 
-hostel_list = ["Hostel A (Girls Hostel)", "Hostel B (Girls Hostel)", "Hostel C (Girls Hostel)", "Hostel D (Boys Hostel)", "Hostel E (Boys Hostel)", "Hostel F (Boys Hostel)", "Hostel G (Boys Hostel)", "Hostel H (Boys Hostel)"]
+hostel_list = ["Hostel A", "Hostel B", "Hostel C", "Hostel D", "Hostel E", "Hostel F", "Hostel G", "Hostel H"]
 
 # Choose hostel first
 async def choose_hostel(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -196,7 +196,7 @@ async def confirm_order(update: Update, context: ContextTypes.DEFAULT_TYPE):
         hostel = context.user_data.get('hostel', "No hostel selected")
         order_summary = "\n".join([f"{item} (₹{price})" for item, price in context.user_data['order']])
         total_price = sum([price for _, price in context.user_data['order']])
-        order_id = random.randint(10000, 99999)
+        order_id = random.randint(100000, 999999)
 
         await update.message.reply_text(f"Order confirmed:\nHostel: {hostel}\nOrder ID: {order_id}\n{order_summary}\nTotal Price: ₹{total_price}")
 
