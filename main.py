@@ -206,8 +206,12 @@ async def confirm_order(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_message(cafe_chat_id, f"New Order:\nHostel: {hostel}\nOrder ID: {order_id}\n{order_summary}\nTotal Price: ₹{total_price}")
         except Exception as e:
             await update.message.reply_text(f"Error sending message to cafe: {str(e)}")
+
+        # Clear the order after confirmation
+        context.user_data['order'] = []  # Reset order so user can place a new one
     else:
         await update.message.reply_text("No items in your order. Type /order to start ordering.")
+
 
 
 # Get chat ID and reply to the user
