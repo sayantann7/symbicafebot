@@ -2,9 +2,10 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 import random
 import asyncio
+import os
 
-BOT_TOKEN = "7841263367:AAFhsbbzuxfvrMekdQ19rqMojiZuQxTHrho"  
-CHAT_ID = "6873588948"  
+BOT_TOKEN = os.getenv('BOT_TOKEN_ID') 
+CHAT_ID =  os.getenv('CAFE_CHAT_ID')
 
 # Menu Items categorized with prices
 menu_sections = {
