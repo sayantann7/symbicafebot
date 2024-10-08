@@ -88,6 +88,7 @@ menu_sections = {
 hostel_list = ["Hostel A", "Hostel B", "Hostel C", "Hostel D", "Hostel E", "Hostel F", "Hostel G", "Hostel H"]
 
 async def ask_service_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print("ask_service_type function called")  # Debugging line
     keyboard = [
         [InlineKeyboardButton("Dine In", callback_data="dine_in")],
         [InlineKeyboardButton("Take Away", callback_data="take_away")],
@@ -140,20 +141,6 @@ async def handle_phone_number(update: Update, context: ContextTypes.DEFAULT_TYPE
     context.user_data['phone_number'] = phone_number
 
     await ask_service_type(update, context)
-
-# Handle phone number input
-async def handle_phone_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    phone_number = update.message.text
-
-    # Validate if the phone number is a valid number (basic check)
-    if not phone_number.isdigit() or len(phone_number) < 10:
-        await update.message.reply_text("Invalid phone number. Please enter a valid 10-digit number.")
-        return
-    
-    # Store phone number in user data
-    context.user_data['phone_number'] = phone_number
-    await update.message.reply_text(f"Thanks for sharing your phone number: {phone_number}")
-    await choose_hostel(update, context)
 
 # Ordering: Moved from /start to /order
 async def order(update: Update, context: ContextTypes.DEFAULT_TYPE):
