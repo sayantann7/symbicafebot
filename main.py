@@ -322,6 +322,7 @@ async def main():
     application.add_handler(CallbackQueryHandler(item_selection, pattern='|'.join([item for section in menu_sections.values() for item in section.keys()])))
     application.add_handler(CallbackQueryHandler(item_removal_selection, pattern=r'^remove_.*'))
     application.add_handler(CallbackQueryHandler(hostel_selection, pattern='|'.join(hostel_list)))
+    application.add_handler(CallbackQueryHandler(service_type_selection, pattern="dine_in|take_away|delivery"))
 
     await application.initialize()
     await application.start()
