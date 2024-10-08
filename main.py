@@ -102,14 +102,34 @@ async def hostel_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.edit_message_text(f"Hostel selected: {query.data}. You can now start your order by typing /order.")
 
 
-# Start Command: Only for hostel selection now
+# Start Command: Ask for phone number first, then hostel selection
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if 'phone_number' not in context.user_data:
+        # Request the user's phone number
+        contact_button = InlineKeyboardButton(text="Share your phone number", request_contact=True)
+        reply_markup = InlineKeyboardMarkup([[contact_button]], one_time_keyboard=True)
+        await update.message.reply_text("Please share your phone number to proceed.", reply_markup=reply_markup)
+    else:
+        await choose_hostel(update, context)
+
+# Handle phone number
+async def handle_contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    contact = update.message.contact
+    context.user_data['phone_number'] = contact.phone_number  # Store phone number
+    await update.message.reply_text(f"Phone number received: {contact.phone_number}")
     await choose_hostel(update, context)
 
 
 # Ordering: Moved from /start to /order
 async def order(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Check if hostel is selected first
+    # Check if phone number is provided
+    if 'phone_number' not in context.user_data:
+        contact_button = InlineKeyboardButton(text="Share your phone number", request_contact=True)
+        reply_markup = InlineKeyboardMarkup([[contact_button]], one_time_keyboard=True)
+        await update.message.reply_text("Please share your phone number first before proceeding with the order.", reply_markup=reply_markup)
+        return
+
+    # Check if hostel is selected
     if 'hostel' not in context.user_data:
         await update.message.reply_text("Please select your hostel first using /start.")
         return
@@ -193,21 +213,30 @@ async def edit_hostel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Confirm Order with hostel and order ID
 async def confirm_order(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Check if phone number is provided
+    if 'phone_number' not in context.user_data:
+        contact_button = InlineKeyboardButton(text="Share your phone number", request_contact=True)
+        reply_markup = InlineKeyboardMarkup([[contact_button]], one_time_keyboard=True)
+        await update.message.reply_text("Please share your phone number before confirming the order.", reply_markup=reply_markup)
+        return
+
+    # Check if order exists
     if 'order' in context.user_data and context.user_data['order']:
         hostel = context.user_data.get('hostel', "No hostel selected")
+        phone_number = context.user_data.get('phone_number', "No phone number")
         order_summary = "\n".join([f"{item} (₹{price})" for item, price in context.user_data['order']])
         total_price = sum([price for _, price in context.user_data['order']])
         order_id = random.randint(100000, 999999)
 
-        await update.message.reply_text(f"Order confirmed:\nHostel: {hostel}\nOrder ID: {order_id}\n{order_summary}\nTotal Price: ₹{total_price}")
+        await update.message.reply_text(f"Order confirmed:\nHostel: {hostel}\nPhone: {phone_number}\nOrder ID: {order_id}\n{order_summary}\nTotal Price: ₹{total_price}")
 
         # Send order to cafe
         cafe_chat_id = CHAT_ID
         try:
-            await context.bot.send_message(cafe_chat_id, f"New Order:\nHostel: {hostel}\nOrder ID: {order_id}\n{order_summary}\nTotal Price: ₹{total_price}")
+            await context.bot.send_message(cafe_chat_id, f"New Order:\nHostel: {hostel}\nPhone: {phone_number}\nOrder ID: {order_id}\n{order_summary}\nTotal Price: ₹{total_price}")
         except Exception as e:
             await update.message.reply_text(f"Error sending message to cafe: {str(e)}")
-
+        
         # Clear the order after confirmation
         context.user_data['order'] = []  # Reset order so user can place a new one
     else:
