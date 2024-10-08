@@ -105,9 +105,6 @@ async def hostel_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Please enter your phone number:")
 
-async def edit_phone_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await handle_phone_number(update, context)
-
 # Handle new phone number input (reusing the existing function)
 async def handle_phone_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
     phone_number = update.message.text
@@ -272,7 +269,6 @@ async def main():
     application.add_handler(CommandHandler("remove_item", remove_item))
     application.add_handler(CommandHandler("edit_hostel", edit_hostel))
     application.add_handler(CommandHandler("getchatid", getchatid))
-    application.add_handler(CommandHandler("edit_phone", edit_phone_number))
 
     # Callback query handlers
     application.add_handler(CallbackQueryHandler(section_selection, pattern='|'.join(menu_sections.keys())))
