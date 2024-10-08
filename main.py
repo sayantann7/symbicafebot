@@ -1,5 +1,5 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, KeyboardButton, ReplyKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes, MessageHandler, filters
 import random
 import asyncio
 import os
@@ -253,6 +253,7 @@ async def main():
 
     # Command handlers
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_phone_number))  # Handles the phone number input
     application.add_handler(CommandHandler("order", order))
     application.add_handler(CommandHandler("confirm", confirm_order))
     application.add_handler(CommandHandler("remove_item", remove_item))
