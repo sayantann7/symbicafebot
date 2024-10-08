@@ -142,14 +142,17 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Ordering: Moved from /start to /order
 async def order(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
+    query = update.callback_query
+    await query.answer()
+
     # Check if the phone number has been provided
     if 'phone_number' not in context.user_data:
-        await update.message.reply_text("Please provide your phone number first using /start.")
+        await query.message.reply_text("Please provide your phone number first using /start.")
         return
 
     # Check if the hostel has been selected
     if 'hostel' not in context.user_data:
-        await update.message.reply_text("Please select your hostel first.")
+        await query.message.reply_text("Please select your hostel first.")
         return
 
     # Continue with the ordering process
@@ -164,7 +167,7 @@ async def order(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard.append(row)
     
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.callback_query.message.reply_text("Please select a menu section:", reply_markup=reply_markup)
+    await query.message.reply_text("Please select a menu section:", reply_markup=reply_markup)
 
 # Handle section selection
 async def section_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
