@@ -122,9 +122,11 @@ async def service_type_selection(update: Update, context: ContextTypes.DEFAULT_T
 
 # Choose hostel first
 async def choose_hostel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query  # Get the callback query
+    await query.answer()  # Acknowledge the callback query
     keyboard = [[InlineKeyboardButton(hostel, callback_data=hostel)] for hostel in hostel_list]  # Each hostel in a new row
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("Please select your hostel:", reply_markup=reply_markup)
+    await  query.edit_message_text("Please select your hostel:", reply_markup=reply_markup)
 
 # Handle hostel selection
 async def hostel_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -267,14 +269,14 @@ async def confirm_order(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                     f"Phone Number: {phone_number}\n"
                                     f"Service Type: {service}\n"
                                     f"Hostel: {hostel}\n"
-                                    f"Order ID:{order_id}\n"
+                                    f"Order ID: {order_id}\n"
                                     f"Order:\n{order_summary}\n"
                                     f"Total Amount: ₹{total_price}")
         else:
             confirmation_message = (f"Order Confirmed!\n\n"
                                     f"Phone Number: {phone_number}\n"
                                     f"Service Type: {service}\n"
-                                    f"Order ID:{order_id}\n"
+                                    f"Order ID: {order_id}\n"
                                     f"Order:\n{order_summary}\n"
                                     f"Total Amount: ₹{total_price}")
 
@@ -285,14 +287,14 @@ async def confirm_order(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                     f"Phone Number: {phone_number}\n"
                                     f"Service Type: {service}\n"
                                     f"Hostel: {hostel}\n"
-                                    f"Order ID:{order_id}\n"
+                                    f"Order ID: {order_id}\n"
                                     f"Order:\n{order_summary}\n"
                                     f"Total Amount: ₹{total_price}")
         else:
             cafe_message = (f"New Order!\n\n"
                                     f"Phone Number: {phone_number}\n"
                                     f"Service Type: {service}\n"
-                                    f"Order ID:{order_id}\n"
+                                    f"Order ID: {order_id}\n"
                                     f"Order:\n{order_summary}\n"
                                     f"Total Amount: ₹{total_price}")
 
