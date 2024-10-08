@@ -106,8 +106,8 @@ async def hostel_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if 'phone_number' not in context.user_data:
         # Request the user's phone number
-        contact_button = InlineKeyboardButton(text="Share your phone number", request_contact=True)
-        reply_markup = InlineKeyboardMarkup([[contact_button]], one_time_keyboard=True)
+        contact_button = KeyboardButton(text="Share your phone number", request_contact=True)
+        reply_markup = ReplyKeyboardMarkup([[contact_button]], one_time_keyboard=True)
         await update.message.reply_text("Please share your phone number to proceed.", reply_markup=reply_markup)
     else:
         await choose_hostel(update, context)
@@ -124,8 +124,8 @@ async def handle_contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def order(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Check if phone number is provided
     if 'phone_number' not in context.user_data:
-        contact_button = InlineKeyboardButton(text="Share your phone number", request_contact=True)
-        reply_markup = InlineKeyboardMarkup([[contact_button]], one_time_keyboard=True)
+        contact_button = KeyboardButton(text="Share your phone number", request_contact=True)
+        reply_markup = ReplyKeyboardMarkup([[contact_button]], one_time_keyboard=True)
         await update.message.reply_text("Please share your phone number first before proceeding with the order.", reply_markup=reply_markup)
         return
 
