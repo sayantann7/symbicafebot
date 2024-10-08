@@ -164,7 +164,7 @@ async def order(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard.append(row)
     
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("Please select a menu section:", reply_markup=reply_markup)
+    await update.callback_query.message.reply_text("Please select a menu section:", reply_markup=reply_markup)
 
 # Handle section selection
 async def section_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
