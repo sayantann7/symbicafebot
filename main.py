@@ -97,6 +97,15 @@ async def ask_service_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text("Please select your service type:", reply_markup=reply_markup)
 
+async def edit_service_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [InlineKeyboardButton("Dine In", callback_data="dine_in")],
+        [InlineKeyboardButton("Take Away", callback_data="take_away")],
+        [InlineKeyboardButton("Delivery (After 10:30 p.m.)", callback_data="delivery")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("Please select your service type:", reply_markup=reply_markup)
+
 async def service_type_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -104,10 +113,12 @@ async def service_type_selection(update: Update, context: ContextTypes.DEFAULT_T
     service_type = query.data
     context.user_data['service_type'] = service_type
 
+    service = "Delivery" if service_type.lower() == "delivery" else "Take Away" if service_type.lower() == "take_away" else "Dine In"
+
     if service_type == "delivery":
         await choose_hostel(update, context)  # Ask for hostel if delivery is selected
     else:
-        await query.edit_message_text(f"Service type selected: {service_type}. You can now start your order by typing /order.")
+        await query.edit_message_text(f"Service type selected: {service}. You can now start your order by typing /order.")
         await order(update, context)  # Directly move to ordering
 
 # Choose hostel first
@@ -249,19 +260,22 @@ async def confirm_order(update: Update, context: ContextTypes.DEFAULT_TYPE):
         order_summary = "\n".join([f"{item} (₹{price})" for item, price in context.user_data['order']])
         total_price = sum([price for _, price in context.user_data['order']])
         service_type = context.user_data.get('service_type', "Not specified")
+        service = "Delivery" if service_type.lower() == "delivery" else "Take Away" if service_type.lower() == "take_away" else "Dine In"
         order_id = random.randint(100000, 999999)
 
         if service_type.lower() == "delivery":
             confirmation_message = (f"Order Confirmed!\n\n"
                                     f"Phone Number: {phone_number}\n"
-                                    f"Service Type: {service_type}\n"
+                                    f"Service Type: {service}\n"
                                     f"Hostel: {hostel}\n"
+                                    f"Order ID:\n{order_id}\n"
                                     f"Order:\n{order_summary}\n"
                                     f"Total Amount: ₹{total_price}")
         else:
             confirmation_message = (f"Order Confirmed!\n\n"
                                     f"Phone Number: {phone_number}\n"
-                                    f"Service Type: {service_type}\n"
+                                    f"Service Type: {service}\n"
+                                    f"Order ID:\n{order_id}\n"
                                     f"Order:\n{order_summary}\n"
                                     f"Total Amount: ₹{total_price}")
 
@@ -270,14 +284,16 @@ async def confirm_order(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if service_type.lower() == "delivery":
             cafe_message = (f"New Order!\n\n"
                                     f"Phone Number: {phone_number}\n"
-                                    f"Service Type: {service_type}\n"
+                                    f"Service Type: {service}\n"
                                     f"Hostel: {hostel}\n"
+                                    f"Order ID:\n{order_id}\n"
                                     f"Order:\n{order_summary}\n"
                                     f"Total Amount: ₹{total_price}")
         else:
             cafe_message = (f"New Order!\n\n"
                                     f"Phone Number: {phone_number}\n"
-                                    f"Service Type: {service_type}\n"
+                                    f"Service Type: {service}\n"
+                                    f"Order ID:\n{order_id}\n"
                                     f"Order:\n{order_summary}\n"
                                     f"Total Amount: ₹{total_price}")
 
@@ -308,6 +324,7 @@ async def main():
     application.add_handler(CommandHandler("remove_item", remove_item))
     application.add_handler(CommandHandler("edit_hostel", edit_hostel))
     application.add_handler(CommandHandler("getchatid", getchatid))
+    application.add_handler(CommandHandler("edit_service_type", edit_service_type))
 
     # Callback query handlers
     application.add_handler(CallbackQueryHandler(section_selection, pattern='|'.join(menu_sections.keys())))
