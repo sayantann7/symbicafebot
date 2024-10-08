@@ -105,6 +105,27 @@ async def hostel_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Please enter your phone number:")
 
+async def edit_phone_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await handle_phone_number(update, context)
+
+# Handle new phone number input (reusing the existing function)
+async def handle_phone_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    phone_number = update.message.text
+
+    # Validate if the phone number is a valid number (basic check)
+    if not phone_number.isdigit() or len(phone_number) < 10:
+        await update.message.reply_text("Invalid phone number. Please enter a valid 10-digit number.")
+        return
+    
+    # Store phone number in user data
+    context.user_data['phone_number'] = phone_number
+
+    # Respond with confirmation
+    await update.message.reply_text(f"Your phone number has been updated to: {phone_number}")
+
+    # If the user was editing the phone number, we can clear the editing flag
+    context.user_data['editing_phone'] = False
+
 # Handle phone number input
 async def handle_phone_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
     phone_number = update.message.text
@@ -119,40 +140,17 @@ async def handle_phone_number(update: Update, context: ContextTypes.DEFAULT_TYPE
     await update.message.reply_text(f"Thanks for sharing your phone number: {phone_number}")
     await choose_hostel(update, context)
 
-# Add this to handle the back navigation
-async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-    
-    # Call the order function to show the main menu sections again
-    await order(update, context)
-
-# Update button_click to handle back navigation
-async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()  # Acknowledge the button click
-
-    # Check if the callback_data matches "start_order"
-    if query.data == "start_order":
-        await order(update, context)  # Show menu sections
-    else:
-        await back_to_main_menu(update, context)  # Handle back navigation
-
-
 # Ordering: Moved from /start to /order
 async def order(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    query = update.callback_query
-    await query.answer()
-
     # Check if the phone number has been provided
     if 'phone_number' not in context.user_data:
-        await query.message.reply_text("Please provide your phone number first using /start.")
+        await update.message.reply_text("Please provide your phone number first using /start.")
         return
 
     # Check if the hostel has been selected
     if 'hostel' not in context.user_data:
-        await query.message.reply_text("Please select your hostel first.")
+        await update.message.reply_text("Please select your hostel first.")
         return
 
     # Continue with the ordering process
@@ -167,7 +165,7 @@ async def order(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard.append(row)
     
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await query.message.reply_text("Please select a menu section:", reply_markup=reply_markup)
+    await update.message.reply_text("Please select a menu section:", reply_markup=reply_markup)
 
 # Handle section selection
 async def section_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -179,7 +177,6 @@ async def section_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Show items with prices in the selected section, each item on a new line
     keyboard = []
-    keyboard.append([InlineKeyboardButton("Back to Main Menu", callback_data="start_order")])
     for item, price in items.items():
         keyboard.append([InlineKeyboardButton(f"{item} (₹{price})", callback_data=item)])
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -275,13 +272,13 @@ async def main():
     application.add_handler(CommandHandler("remove_item", remove_item))
     application.add_handler(CommandHandler("edit_hostel", edit_hostel))
     application.add_handler(CommandHandler("getchatid", getchatid))
+    application.add_handler(CommandHandler("edit_phone", edit_phone_number))
 
     # Callback query handlers
     application.add_handler(CallbackQueryHandler(section_selection, pattern='|'.join(menu_sections.keys())))
     application.add_handler(CallbackQueryHandler(item_selection, pattern='|'.join([item for section in menu_sections.values() for item in section.keys()])))
     application.add_handler(CallbackQueryHandler(item_removal_selection, pattern=r'^remove_.*'))
     application.add_handler(CallbackQueryHandler(hostel_selection, pattern='|'.join(hostel_list)))
-    application.add_handler(CallbackQueryHandler(back_to_main_menu, pattern='^start_order$'))
 
     await application.initialize()
     await application.start()
