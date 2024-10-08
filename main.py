@@ -102,39 +102,38 @@ async def hostel_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.edit_message_text(f"Hostel selected: {query.data}. You can now start your order by typing /order.")
 
 
-# Start Command: Ask for phone number first, then hostel selection
+# Asking for the phone number
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if 'phone_number' not in context.user_data:
-        # Request the user's phone number
-        contact_button = KeyboardButton(text="Share your phone number", request_contact=True)
-        reply_markup = ReplyKeyboardMarkup([[contact_button]], one_time_keyboard=True)
-        await update.message.reply_text("Please share your phone number to proceed.", reply_markup=reply_markup)
-    else:
-        await choose_hostel(update, context)
+    await update.message.reply_text("Please enter your phone number:")
 
-# Handle phone number
-async def handle_contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    contact = update.message.contact
-    context.user_data['phone_number'] = contact.phone_number  # Store phone number
-    await update.message.reply_text(f"Phone number received: {contact.phone_number}")
+# Handle phone number input
+async def handle_phone_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    phone_number = update.message.text
+
+    # Validate if the phone number is a valid number (basic check)
+    if not phone_number.isdigit() or len(phone_number) < 10:
+        await update.message.reply_text("Invalid phone number. Please enter a valid 10-digit number.")
+        return
+    
+    # Store phone number in user data
+    context.user_data['phone_number'] = phone_number
+    await update.message.reply_text(f"Thanks for sharing your phone number: {phone_number}")
     await choose_hostel(update, context)
 
 
 # Ordering: Moved from /start to /order
 async def order(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Check if phone number is provided
+    # Check if the phone number has been provided
     if 'phone_number' not in context.user_data:
-        contact_button = KeyboardButton(text="Share your phone number", request_contact=True)
-        reply_markup = ReplyKeyboardMarkup([[contact_button]], one_time_keyboard=True)
-        await update.message.reply_text("Please share your phone number first before proceeding with the order.", reply_markup=reply_markup)
+        await update.message.reply_text("Please provide your phone number first using /start.")
         return
 
-    # Check if hostel is selected
+    # Check if the hostel has been selected
     if 'hostel' not in context.user_data:
-        await update.message.reply_text("Please select your hostel first using /start.")
+        await update.message.reply_text("Please select your hostel first.")
         return
-    
-    # Create keyboard for menu sections
+
+    # Continue with the ordering process
     keyboard = []
     row = []
     for section in menu_sections.keys():
@@ -144,7 +143,7 @@ async def order(update: Update, context: ContextTypes.DEFAULT_TYPE):
             row = []
     if row:
         keyboard.append(row)
-
+    
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text("Please select a menu section:", reply_markup=reply_markup)
 
