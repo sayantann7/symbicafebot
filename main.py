@@ -139,11 +139,7 @@ async def handle_phone_number(update: Update, context: ContextTypes.DEFAULT_TYPE
     # Store phone number in user data
     context.user_data['phone_number'] = phone_number
 
-    # Respond with confirmation
-    await update.message.reply_text(f"Your phone number has been updated to: {phone_number}")
-
-    # If the user was editing the phone number, we can clear the editing flag
-    context.user_data['editing_phone'] = False
+    await ask_service_type(update, context)
 
 # Handle phone number input
 async def handle_phone_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
