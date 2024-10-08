@@ -150,8 +150,13 @@ async def order(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Please provide your phone number first using /start.")
         return
 
-    # Check if the hostel has been selected
-    if 'hostel' not in context.user_data:
+    # Check if service type has been provided
+    if 'service_type' not in context.user_data:
+        await update.message.reply_text("Please select your service type first.")
+        return
+
+    # Check if the service type is 'delivery' and if the hostel has been selected
+    if context.user_data['service_type'] == "delivery" and 'hostel' not in context.user_data:
         await update.message.reply_text("Please select your hostel first.")
         return
 
