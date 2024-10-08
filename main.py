@@ -165,7 +165,7 @@ async def section_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Show items with prices in the selected section, each item on a new line
     keyboard = []
-    keyboard.append([InlineKeyboardButton(section, callback_data=section)])
+    keyboard.append([InlineKeyboardButton("Back to Main Menu", callback_data="start_order")])
     for item, price in items.items():
         keyboard.append([InlineKeyboardButton(f"{item} (₹{price})", callback_data=item)])
     reply_markup = InlineKeyboardMarkup(keyboard)
