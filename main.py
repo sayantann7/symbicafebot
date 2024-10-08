@@ -119,16 +119,29 @@ async def handle_phone_number(update: Update, context: ContextTypes.DEFAULT_TYPE
     await update.message.reply_text(f"Thanks for sharing your phone number: {phone_number}")
     await choose_hostel(update, context)
 
+# Add this to handle the back navigation
+async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    # Call the order function to show the main menu sections again
+    await order(update, context)
+
+# Update button_click to handle back navigation
 async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()  # Acknowledge the button click
 
     # Check if the callback_data matches "start_order"
     if query.data == "start_order":
-        await section_selection(update, context)
+        await order(update, context)  # Show menu sections
+    else:
+        await back_to_main_menu(update, context)  # Handle back navigation
+
 
 # Ordering: Moved from /start to /order
 async def order(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
     # Check if the phone number has been provided
     if 'phone_number' not in context.user_data:
         await update.message.reply_text("Please provide your phone number first using /start.")
@@ -265,7 +278,7 @@ async def main():
     application.add_handler(CallbackQueryHandler(item_selection, pattern='|'.join([item for section in menu_sections.values() for item in section.keys()])))
     application.add_handler(CallbackQueryHandler(item_removal_selection, pattern=r'^remove_.*'))
     application.add_handler(CallbackQueryHandler(hostel_selection, pattern='|'.join(hostel_list)))
-    application.add_handler(CallbackQueryHandler(button_click))
+    application.add_handler(CallbackQueryHandler(back_to_main_menu, pattern='^start_order$'))
 
     await application.initialize()
     await application.start()
