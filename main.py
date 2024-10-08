@@ -125,8 +125,6 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Check if the callback_data matches "start_order"
     if query.data == "start_order":
-        await query.message.reply_text("Starting your order...")
-        # Now trigger the /order command
         await order(update, context)
 
 # Ordering: Moved from /start to /order
