@@ -88,7 +88,6 @@ menu_sections = {
 hostel_list = ["Hostel A", "Hostel B", "Hostel C", "Hostel D", "Hostel E", "Hostel F", "Hostel G", "Hostel H"]
 
 async def ask_service_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print("ask_service_type function called")  # Debugging line
     keyboard = [
         [InlineKeyboardButton("Dine In", callback_data="dine_in")],
         [InlineKeyboardButton("Take Away", callback_data="take_away")],
@@ -268,14 +267,14 @@ async def confirm_order(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                     f"Phone Number: {phone_number}\n"
                                     f"Service Type: {service}\n"
                                     f"Hostel: {hostel}\n"
-                                    f"Order ID:\n{order_id}\n"
+                                    f"Order ID:{order_id}\n"
                                     f"Order:\n{order_summary}\n"
                                     f"Total Amount: ₹{total_price}")
         else:
             confirmation_message = (f"Order Confirmed!\n\n"
                                     f"Phone Number: {phone_number}\n"
                                     f"Service Type: {service}\n"
-                                    f"Order ID:\n{order_id}\n"
+                                    f"Order ID:{order_id}\n"
                                     f"Order:\n{order_summary}\n"
                                     f"Total Amount: ₹{total_price}")
 
@@ -286,14 +285,14 @@ async def confirm_order(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                     f"Phone Number: {phone_number}\n"
                                     f"Service Type: {service}\n"
                                     f"Hostel: {hostel}\n"
-                                    f"Order ID:\n{order_id}\n"
+                                    f"Order ID:{order_id}\n"
                                     f"Order:\n{order_summary}\n"
                                     f"Total Amount: ₹{total_price}")
         else:
             cafe_message = (f"New Order!\n\n"
                                     f"Phone Number: {phone_number}\n"
                                     f"Service Type: {service}\n"
-                                    f"Order ID:\n{order_id}\n"
+                                    f"Order ID:{order_id}\n"
                                     f"Order:\n{order_summary}\n"
                                     f"Total Amount: ₹{total_price}")
 
@@ -324,7 +323,7 @@ async def main():
     application.add_handler(CommandHandler("remove_item", remove_item))
     application.add_handler(CommandHandler("edit_hostel", edit_hostel))
     application.add_handler(CommandHandler("getchatid", getchatid))
-    application.add_handler(CommandHandler("edit_service_type", edit_service_type))
+    application.add_handler(CommandHandler("service", edit_service_type))
 
     # Callback query handlers
     application.add_handler(CallbackQueryHandler(section_selection, pattern='|'.join(menu_sections.keys())))
