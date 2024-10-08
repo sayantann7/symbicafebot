@@ -101,7 +101,6 @@ async def hostel_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['hostel'] = query.data
     await query.edit_message_text(f"Hostel selected: {query.data}. You can now start your order by typing /order.")
 
-
 # Asking for the phone number
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Please enter your phone number:")
@@ -120,6 +119,15 @@ async def handle_phone_number(update: Update, context: ContextTypes.DEFAULT_TYPE
     await update.message.reply_text(f"Thanks for sharing your phone number: {phone_number}")
     await choose_hostel(update, context)
 
+async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()  # Acknowledge the button click
+
+    # Check if the callback_data matches "start_order"
+    if query.data == "start_order":
+        await query.message.reply_text("Starting your order...")
+        # Now trigger the /order command
+        await order(update, context)
 
 # Ordering: Moved from /start to /order
 async def order(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -136,6 +144,7 @@ async def order(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Continue with the ordering process
     keyboard = []
     row = []
+    keyboard.append(InlineKeyboardButton("Back to Main Menu", callback_data="start_order"))
     for section in menu_sections.keys():
         row.append(InlineKeyboardButton(section, callback_data=section))
         if len(row) == 2:
@@ -146,7 +155,6 @@ async def order(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text("Please select a menu section:", reply_markup=reply_markup)
-
 
 # Handle section selection
 async def section_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -160,7 +168,6 @@ async def section_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [[InlineKeyboardButton(f"{item} (₹{price})", callback_data=item)] for item, price in items.items()]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await query.edit_message_text(f"You selected: {section}. Please choose an item:", reply_markup=reply_markup)
-
 
 # Handle item selection (Add to order)
 async def item_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -181,7 +188,6 @@ async def item_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     order_summary = "\n".join([f"{itm} (₹{prc})" for itm, prc in context.user_data['order']])
     await query.edit_message_text(f"Item added: {item} (₹{price})\nCurrent Order:\n{order_summary}\nType /confirm to place the order, /remove_item to remove items, or /order to choose another section.")
 
-
 # Handle removing an item from the order
 async def remove_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if 'order' in context.user_data and context.user_data['order']:
@@ -191,7 +197,6 @@ async def remove_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Select an item to remove:", reply_markup=reply_markup)
     else:
         await update.message.reply_text("Your order is empty. Type /order to add items.")
-
 
 # Handle item removal
 async def item_removal_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -204,11 +209,9 @@ async def item_removal_selection(update: Update, context: ContextTypes.DEFAULT_T
     order_summary = "\n".join([f"{itm} (₹{prc})" for itm, prc in context.user_data['order']])
     await query.edit_message_text(f"Item removed: {item_to_remove}\nCurrent Order:\n{order_summary}\nType /confirm to place the order, or /order to add more items.")
 
-
 # Edit hostel selection (if students want to change their hostel)
 async def edit_hostel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await choose_hostel(update, context)
-
 
 # Confirm Order with hostel and order ID
 async def confirm_order(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -241,12 +244,9 @@ async def confirm_order(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("No items in your order. Type /order to start ordering.")
 
-
-
 # Get chat ID and reply to the user
 async def getchatid(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"Your chat ID is: {update.effective_chat.id}")
-
 
 async def main():
     application = ApplicationBuilder().token(BOT_TOKEN).build()
@@ -265,6 +265,7 @@ async def main():
     application.add_handler(CallbackQueryHandler(item_selection, pattern='|'.join([item for section in menu_sections.values() for item in section.keys()])))
     application.add_handler(CallbackQueryHandler(item_removal_selection, pattern=r'^remove_.*'))
     application.add_handler(CallbackQueryHandler(hostel_selection, pattern='|'.join(hostel_list)))
+    application.add_handler(CallbackQueryHandler(button_click))
 
     await application.initialize()
     await application.start()
@@ -274,7 +275,6 @@ async def main():
     
     while True:
         await asyncio.sleep(1)
-
 
 if __name__ == '__main__':
     asyncio.run(main())
