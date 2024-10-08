@@ -144,7 +144,6 @@ async def order(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Continue with the ordering process
     keyboard = []
     row = []
-    keyboard.append(InlineKeyboardButton("Back to Main Menu", callback_data="start_order"))
     for section in menu_sections.keys():
         row.append(InlineKeyboardButton(section, callback_data=section))
         if len(row) == 2:
@@ -165,7 +164,10 @@ async def section_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     items = menu_sections[section]
 
     # Show items with prices in the selected section, each item on a new line
-    keyboard = [[InlineKeyboardButton(f"{item} (₹{price})", callback_data=item)] for item, price in items.items()]
+    keyboard = []
+    keyboard.append([InlineKeyboardButton(section, callback_data=section)])
+    for item, price in items.items():
+        keyboard.append([InlineKeyboardButton(f"{item} (₹{price})", callback_data=item)])
     reply_markup = InlineKeyboardMarkup(keyboard)
     await query.edit_message_text(f"You selected: {section}. Please choose an item:", reply_markup=reply_markup)
 
