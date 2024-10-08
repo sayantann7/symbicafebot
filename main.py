@@ -125,7 +125,7 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Check if the callback_data matches "start_order"
     if query.data == "start_order":
-        await order(update, context)
+        await section_selection(update, context)
 
 # Ordering: Moved from /start to /order
 async def order(update: Update, context: ContextTypes.DEFAULT_TYPE):
