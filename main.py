@@ -87,6 +87,28 @@ menu_sections = {
 
 hostel_list = ["Hostel A", "Hostel B", "Hostel C", "Hostel D", "Hostel E", "Hostel F", "Hostel G", "Hostel H"]
 
+async def ask_service_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [InlineKeyboardButton("Dine In", callback_data="dine_in")],
+        [InlineKeyboardButton("Take Away", callback_data="take_away")],
+        [InlineKeyboardButton("Delivery (After 10:30 p.m.)", callback_data="delivery")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("Please select your service type:", reply_markup=reply_markup)
+
+async def service_type_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    service_type = query.data
+    context.user_data['service_type'] = service_type
+
+    if service_type == "delivery":
+        await choose_hostel(update, context)  # Ask for hostel if delivery is selected
+    else:
+        await query.edit_message_text(f"Service type selected: {service_type}. You can now start your order by typing /order.")
+        await order(update, context)  # Directly move to ordering
+
 # Choose hostel first
 async def choose_hostel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [[InlineKeyboardButton(hostel, callback_data=hostel)] for hostel in hostel_list]  # Each hostel in a new row
@@ -238,14 +260,43 @@ async def confirm_order(update: Update, context: ContextTypes.DEFAULT_TYPE):
         phone_number = context.user_data.get('phone_number', "No phone number")
         order_summary = "\n".join([f"{item} (₹{price})" for item, price in context.user_data['order']])
         total_price = sum([price for _, price in context.user_data['order']])
+        service_type = context.user_data.get('service_type', "Not specified")
         order_id = random.randint(100000, 999999)
 
-        await update.message.reply_text(f"Order confirmed:\nHostel: {hostel}\nPhone: {phone_number}\nOrder ID: {order_id}\n{order_summary}\nTotal Price: ₹{total_price}")
+        if service_type.lower() == "delivery":
+            confirmation_message = (f"Order Confirmed!\n\n"
+                                    f"Phone Number: {phone_number}\n"
+                                    f"Service Type: {service_type}\n"
+                                    f"Hostel: {hostel}\n"
+                                    f"Order:\n{order_summary}\n"
+                                    f"Total Amount: ₹{total_price}")
+        else:
+            confirmation_message = (f"Order Confirmed!\n\n"
+                                    f"Phone Number: {phone_number}\n"
+                                    f"Service Type: {service_type}\n"
+                                    f"Order:\n{order_summary}\n"
+                                    f"Total Amount: ₹{total_price}")
+
+        await update.message.reply_text(confirmation_message)
+
+        if service_type.lower() == "delivery":
+            cafe_message = (f"New Order!\n\n"
+                                    f"Phone Number: {phone_number}\n"
+                                    f"Service Type: {service_type}\n"
+                                    f"Hostel: {hostel}\n"
+                                    f"Order:\n{order_summary}\n"
+                                    f"Total Amount: ₹{total_price}")
+        else:
+            cafe_message = (f"New Order!\n\n"
+                                    f"Phone Number: {phone_number}\n"
+                                    f"Service Type: {service_type}\n"
+                                    f"Order:\n{order_summary}\n"
+                                    f"Total Amount: ₹{total_price}")
 
         # Send order to cafe
         cafe_chat_id = CHAT_ID
         try:
-            await context.bot.send_message(cafe_chat_id, f"New Order:\nHostel: {hostel}\nPhone: {phone_number}\nOrder ID: {order_id}\n{order_summary}\nTotal Price: ₹{total_price}")
+            await context.bot.send_message(cafe_chat_id, cafe_message)
         except Exception as e:
             await update.message.reply_text(f"Error sending message to cafe: {str(e)}")
         
@@ -263,7 +314,7 @@ async def main():
 
     # Command handlers
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_phone_number))  # Handles the phone number input
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_phone_number))
     application.add_handler(CommandHandler("order", order))
     application.add_handler(CommandHandler("confirm", confirm_order))
     application.add_handler(CommandHandler("remove_item", remove_item))
